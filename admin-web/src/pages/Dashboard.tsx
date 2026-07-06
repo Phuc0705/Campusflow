@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Users, Activity, QrCode, Zap } from 'lucide-react';
+import { Users, Activity, QrCode, Zap, Bell } from 'lucide-react';
+import WellnessChart from '../components/WellnessChart';
+import EventsList from '../components/EventsList';
+import Leaderboard from '../components/Leaderboard';
+import RelaxSuggestionsPopup from '../components/RelaxSuggestionsPopup';
 
 export default function Dashboard() {
   const [stats, setStats] = useState({
@@ -10,9 +14,11 @@ export default function Dashboard() {
   });
 
   const [recentEvents, setRecentEvents] = useState<any[]>([]);
+  const [wellness, setWellness] = useState<any | null>(null);
+  const [showRelaxPopup, setShowRelaxPopup] = useState(false);
+  const [showBurnoutAlert, setShowBurnoutAlert] = useState(false);
 
   useEffect(() => {
-    // Gọi API lấy dữ liệu thực tế từ Backend
     const fetchDashboardData = async () => {
       try {
         const res = await fetch('http://localhost:3000/api/events');
@@ -24,62 +30,75 @@ export default function Dashboard() {
       } catch (error) {
         console.error('Lỗi khi lấy dữ liệu Admin:', error);
       }
+
+      try {
+        const w = await fetch('http://localhost:3000/api/wellness');
+        const wd = await w.json();
+        if (wd.success) {
+          setWellness(wd.data);
+          const totalHours = (wd.data.study_hours || 0) + (wd.data.work_hours || 0);
+          setShowBurnoutAlert(totalHours > 60);
+        }
+      } catch (e) {
+        console.error('Lỗi khi lấy wellness:', e);
+      }
     };
 
     fetchDashboardData();
-    // Refresh mỗi 5 giây để xem check-in real-time
-    const interval = setInterval(fetchDashboardData, 5000);
+    const interval = setInterval(fetchDashboardData, 10000);
     return () => clearInterval(interval);
   }, []);
 
   return (
     <div className="dashboard-container" style={{ padding: '20px' }}>
-      <h1 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '30px' }}>Bảng điều khiển Nhà trường (Real-time)</h1>
+      <h1 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '20px' }}>Bảng điều khiển Nhà trường (Real-time)</h1>
       
-      {/* Thống kê chung */}
-      <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '40px' }}>
-        <div className="stat-card" style={{ padding: '20px', backgroundColor: '#fff', borderRadius: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}><Users size={24} color="#3b82f6" /><h3 style={{ marginLeft: '10px', color: '#6b7280' }}>Tổng Sinh viên</h3></div>
-          <p style={{ fontSize: '28px', fontWeight: 'bold' }}>{stats.totalStudents}</p>
+      <div className="stats-grid" style={{ marginBottom: '20px' }}>
+        <div className="stat-card">
+          <div className="stat-icon bg-blue"><Users size={20} /></div>
+          <div className="stat-details"><h3>Tổng Sinh viên</h3><div className="stat-value">{stats.totalStudents}</div></div>
         </div>
-        <div className="stat-card" style={{ padding: '20px', backgroundColor: '#fff', borderRadius: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}><Activity size={24} color="#10b981" /><h3 style={{ marginLeft: '10px', color: '#6b7280' }}>Đang Online</h3></div>
-          <p style={{ fontSize: '28px', fontWeight: 'bold', color: '#10b981' }}>{stats.activeSessions}</p>
+        <div className="stat-card">
+          <div className="stat-icon bg-green"><Activity size={20} /></div>
+          <div className="stat-details"><h3>Đang Online</h3><div className="stat-value">{stats.activeSessions}</div></div>
         </div>
-        <div className="stat-card" style={{ padding: '20px', backgroundColor: '#fff', borderRadius: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', border: '2px solid #8b5cf6' }}>
-          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}><QrCode size={24} color="#8b5cf6" /><h3 style={{ marginLeft: '10px', color: '#6b7280', fontWeight: 'bold' }}>QR Điểm danh (API)</h3></div>
-          <p style={{ fontSize: '28px', fontWeight: 'bold', color: '#8b5cf6' }}>{stats.qrCheckins}</p>
+        <div className="stat-card">
+          <div className="stat-icon bg-purple"><QrCode size={20} /></div>
+          <div className="stat-details"><h3>QR Điểm danh (API)</h3><div className="stat-value">{stats.qrCheckins}</div></div>
         </div>
-        <div className="stat-card" style={{ padding: '20px', backgroundColor: '#fff', borderRadius: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}><Zap size={24} color="#f59e0b" /><h3 style={{ marginLeft: '10px', color: '#6b7280' }}>AI Tối ưu hóa</h3></div>
-          <p style={{ fontSize: '28px', fontWeight: 'bold', color: '#f59e0b' }}>{stats.aiOptimizations}</p>
+        <div className="stat-card">
+          <div className="stat-icon bg-red"><Zap size={20} /></div>
+          <div className="stat-details"><h3>AI Tối ưu hóa</h3><div className="stat-value">{stats.aiOptimizations}</div></div>
         </div>
       </div>
 
-      {/* Sự kiện Campus Life */}
-      <div style={{ padding: '20px', backgroundColor: '#fff', borderRadius: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
-        <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '20px' }}>Sự kiện Campus Life (Kết nối Backend)</h2>
-        <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ borderBottom: '1px solid #e5e7eb', color: '#6b7280' }}>
-              <th style={{ padding: '10px' }}>Tên sự kiện</th>
-              <th style={{ padding: '10px' }}>Đơn vị tổ chức</th>
-              <th style={{ padding: '10px' }}>Địa điểm</th>
-              <th style={{ padding: '10px' }}>Thời gian</th>
-            </tr>
-          </thead>
-          <tbody>
-            {recentEvents.map((event) => (
-              <tr key={event.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                <td style={{ padding: '15px 10px', fontWeight: 'bold' }}>{event.title}</td>
-                <td style={{ padding: '15px 10px', color: '#4b5563' }}>{event.club}</td>
-                <td style={{ padding: '15px 10px', color: '#4b5563' }}>{event.location}</td>
-                <td style={{ padding: '15px 10px', color: '#6b7280' }}>{new Date(event.date).toLocaleString('vi-VN')}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {showBurnoutAlert && wellness && (
+        <div className="chart-card" style={{ backgroundColor: '#fff4f4', border: '1px solid #fecaca' }}>
+          <div className="card-header"><h3>⚠️ Cảnh báo Burnout</h3></div>
+          <p>{`Tổng giờ học + làm của sinh viên mẫu: ${wellness.study_hours + wellness.work_hours} giờ/tuần — vượt ngưỡng 60 giờ.`}</p>
+          <button onClick={() => setShowRelaxPopup(true)} style={{ marginTop: 12 }} className="nav-item">Gợi ý hoạt động thư giãn</button>
+        </div>
+      )}
+
+      <div className="charts-container">
+        <div className="chart-card">
+          <div className="card-header"><h3>Wellness: Giờ học / Làm / Ngủ</h3></div>
+          <div className="chart-wrapper">
+            <WellnessChart data={wellness} />
+          </div>
+        </div>
+
+        <div className="chart-card">
+          <div className="card-header"><h3>Leaderboard: Pomodoro Points</h3></div>
+          <Leaderboard />
+        </div>
       </div>
+
+      <div style={{ marginTop: 20 }}>
+        <EventsList />
+      </div>
+
+      <RelaxSuggestionsPopup open={showRelaxPopup} onClose={() => setShowRelaxPopup(false)} />
     </div>
   );
 }
