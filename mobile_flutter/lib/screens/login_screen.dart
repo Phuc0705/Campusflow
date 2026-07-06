@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import '../main.dart'; // Import MainNavigationScreen
 
 class LoginScreen extends StatefulWidget {
@@ -15,6 +17,7 @@ class _LoginScreenState extends State<LoginScreen> {
   
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _nameController = TextEditingController();
 
   @override
   void initState() {
@@ -35,16 +38,18 @@ class _LoginScreenState extends State<LoginScreen> {
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _nameController.dispose();
     super.dispose();
   }
 
   void _handleEmailAuth() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
+    final name = _nameController.text.trim();
 
-    if (email.isEmpty || password.isEmpty) {
+    if (email.isEmpty || password.isEmpty || (!_isLoginMode && name.isEmpty)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vui lòng nhập đầy đủ Email và Mật khẩu'), backgroundColor: Colors.orange),
+        const SnackBar(content: Text('Vui lòng nhập đầy đủ thông tin'), backgroundColor: Colors.orange),
       );
       return;
     }
@@ -62,6 +67,7 @@ class _LoginScreenState extends State<LoginScreen> {
         await Supabase.instance.client.auth.signUp(
           email: email,
           password: password,
+          data: {'full_name': name},
         );
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -102,6 +108,91 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  Future<void> _showSSODialog() async {
+    final mssvController = TextEditingController();
+    final passController = TextEditingController();
+    await showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Cổng Thông Tin Đào Tạo', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Hệ thống sẽ tự động đồng bộ Lịch học và Thông tin cá nhân của bạn.', style: TextStyle(color: Colors.grey)),
+            const SizedBox(height: 15),
+            TextField(
+              controller: mssvController,
+              decoration: const InputDecoration(
+                labelText: 'Mã số sinh viên',
+                prefixIcon: Icon(Icons.badge),
+              ),
+            ),
+            const SizedBox(height: 15),
+            TextField(
+              controller: passController,
+              obscureText: true,
+              decoration: const InputDecoration(
+                labelText: 'Mật khẩu',
+                prefixIcon: Icon(Icons.lock),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Hủy', style: TextStyle(color: Colors.grey))),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.blueAccent, foregroundColor: Colors.white),
+            onPressed: () {
+              Navigator.pop(ctx);
+              _handleSSOLogin(mssvController.text.trim(), passController.text.trim());
+            },
+            child: const Text('Đăng nhập'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _handleSSOLogin(String mssv, String password) async {
+    if (mssv.isEmpty || password.isEmpty) return;
+    setState(() => _isLoading = true);
+    
+    try {
+      final response = await http.post(
+        Uri.parse('http://127.0.0.1:3000/api/auth/mock-sso'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'mssv': mssv, 'password': password}),
+      );
+      
+      final data = json.decode(response.body);
+      if (response.statusCode == 200 && data['success']) {
+        final email = data['data']['email'];
+        final password = data['data']['password'];
+        
+        await Supabase.instance.client.auth.signInWithPassword(
+          email: email,
+          password: password,
+        );
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(data['message'] ?? 'Lỗi đăng nhập SSO'), backgroundColor: Colors.red),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Lỗi kết nối máy chủ SSO: $e'), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -136,6 +227,21 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               const SizedBox(height: 40),
+              
+              // Name Field (chỉ hiện khi Đăng ký)
+              if (!_isLoginMode) ...[
+                TextField(
+                  controller: _nameController,
+                  decoration: InputDecoration(
+                    labelText: 'Họ và tên',
+                    prefixIcon: const Icon(Icons.person_outline),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+              ],
               
               // Email Field
               TextField(
@@ -240,6 +346,27 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 onPressed: _isLoading ? null : _handleGoogleLogin,
+              ),
+              
+              const SizedBox(height: 15),
+
+              // Nút đăng nhập SSO
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF10b981),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  elevation: 2,
+                ),
+                icon: const Icon(Icons.account_balance, size: 24),
+                label: const Text(
+                  'Đăng nhập qua Cổng Trường (SSO)',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                onPressed: _isLoading ? null : _showSSODialog,
               ),
             ],
           ),
