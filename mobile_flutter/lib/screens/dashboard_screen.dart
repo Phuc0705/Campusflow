@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'campus_life_screen.dart';
+import 'event_screen.dart';
 import 'task_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
@@ -72,7 +72,7 @@ class DashboardScreen extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const CampusLifeScreen()),
+                  MaterialPageRoute(builder: (context) => const EventScreen()),
                 );
               },
             ),
