@@ -2,7 +2,8 @@ import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
 import AdminEventsReview from './pages/AdminEventsReview';
 import './index.css';
-nfunction App() {
+
+function App() {
   return (
     <BrowserRouter>
       <div className="app-layout">
