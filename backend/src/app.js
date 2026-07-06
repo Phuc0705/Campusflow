@@ -20,6 +20,7 @@ const taskRoutes = require('./routes/taskRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const wellnessRoutes = require('./routes/wellnessRoutes');
 const eventRoutes = require('./routes/eventRoutes');
+const preferenceRoutes = require('./routes/preferenceRoutes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/schedules', scheduleRoutes);
@@ -27,6 +28,7 @@ app.use('/api/tasks', taskRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/wellness', wellnessRoutes);
 app.use('/api/events', eventRoutes);
+app.use('/api/preferences', preferenceRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

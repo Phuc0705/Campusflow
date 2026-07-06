@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'login_screen.dart';
+import 'preferences_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -151,7 +152,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 20),
+            // Thẻ Cấu hình AI
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child: Card(
+                color: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                elevation: 2,
+                child: ListTile(
+                  leading: const Icon(Icons.settings_suggest, color: Colors.deepPurple, size: 30),
+                  title: const Text('Cài đặt Khung giờ AI', style: TextStyle(fontWeight: FontWeight.bold)),
+                  subtitle: const Text('Giờ Ngủ, Ăn trưa, Di chuyển', style: TextStyle(fontSize: 12)),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const PreferencesScreen()),
+                    );
+                  },
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
             // Nút đăng xuất
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
