@@ -69,13 +69,13 @@ class _TaskScreenState extends State<TaskScreen> {
   }
 
   void _showAddTaskDialog() {
-    final TextEditingController _controller = TextEditingController();
+    final TextEditingController controller = TextEditingController();
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Thêm Bài tập/Deadline'),
         content: TextField(
-          controller: _controller,
+          controller: controller,
           decoration: const InputDecoration(hintText: 'Nhập tên bài tập...'),
           autofocus: true,
         ),
@@ -83,8 +83,8 @@ class _TaskScreenState extends State<TaskScreen> {
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Hủy')),
           ElevatedButton(
             onPressed: () {
-              if (_controller.text.isNotEmpty) {
-                _addTask(_controller.text);
+              if (controller.text.isNotEmpty) {
+                _addTask(controller.text);
                 Navigator.pop(ctx);
               }
             },

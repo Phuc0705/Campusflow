@@ -1,85 +1,63 @@
 import 'package:flutter/material.dart';
-import 'campus_life_screen.dart';
-import 'task_screen.dart';
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
   @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  bool _task1Done = false;
+  bool _task2Done = false;
+
+  @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Colors.white,
-      padding: const EdgeInsets.all(20.0),
-      child: SingleChildScrollView(
+    return Scaffold(
+      appBar: AppBar(title: const Text('Tổng quan CampusFlow')),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Expanded(
-                child: Text('Xin chào,\nNguyễn Văn A 👋', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
-              ),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.blue[50],
-                  borderRadius: BorderRadius.circular(12),
+            const Text('Hôm nay của bạn thế nào?', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 20),
+            // Widget Check Task nhanh
+            Card(
+              elevation: 4,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Row(
+                      children: [
+                        Icon(Icons.checklist, color: Colors.blue),
+                        SizedBox(width: 8),
+                        Text('Việc cần làm khẩn cấp', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                    const Divider(),
+                    CheckboxListTile(
+                      title: Text('Nộp Code Sprint 1', style: TextStyle(decoration: _task1Done ? TextDecoration.lineThrough : null)),
+                      value: _task1Done,
+                      activeColor: Colors.green,
+                      onChanged: (bool? value) => setState(() => _task1Done = value!),
+                    ),
+                    CheckboxListTile(
+                      title: Text('Họp nhóm đồ án', style: TextStyle(decoration: _task2Done ? TextDecoration.lineThrough : null)),
+                      value: _task2Done,
+                      activeColor: Colors.green,
+                      onChanged: (bool? value) => setState(() => _task2Done = value!),
+                    ),
+                  ],
                 ),
-                child: IconButton(
-                  icon: const Icon(Icons.checklist, color: Colors.blueAccent, size: 28),
-                  onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const TaskScreen()));
-                  },
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 30),
-          Card(
-            color: Colors.white,
-            elevation: 2,
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('Tổng quan Tuần này', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  const Text('Mức độ căng thẳng: Bình thường', style: TextStyle(color: Colors.grey)),
-                  const SizedBox(height: 15),
-                  const Text('Giờ tự học: 12/20 giờ'),
-                  const SizedBox(height: 5),
-                  LinearProgressIndicator(value: 0.6, backgroundColor: Colors.grey[200], color: Colors.blue),
-                  const SizedBox(height: 15),
-                  const Text('Việc làm thêm: 8/15 giờ'),
-                  const SizedBox(height: 5),
-                  LinearProgressIndicator(value: 0.53, backgroundColor: Colors.grey[200], color: Colors.green),
-                ],
               ),
             ),
-          ),
-          const SizedBox(height: 20),
-          SizedBox(
-            width: double.infinity,
-            height: 60,
-            child: ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blueAccent,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-              ),
-              icon: const Icon(Icons.festival, size: 28),
-              label: const Text('Khám phá Sự kiện Trường & CLB', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const CampusLifeScreen()),
-                );
-              },
-            ),
-          )
-        ],
+          ],
+        ),
       ),
-      )
     );
   }
 }

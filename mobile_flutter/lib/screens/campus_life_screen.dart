@@ -40,13 +40,13 @@ class _CampusLifeScreenState extends State<CampusLifeScreen> {
   }
 
   void _showQRDialog(String eventId) {
-    final TextEditingController _controller = TextEditingController();
+    final TextEditingController controller = TextEditingController();
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Nhập Mã Sự Kiện'),
         content: TextField(
-          controller: _controller,
+          controller: controller,
           decoration: const InputDecoration(hintText: 'VD: evt-1'),
           autofocus: true,
         ),
@@ -54,7 +54,7 @@ class _CampusLifeScreenState extends State<CampusLifeScreen> {
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Hủy')),
           ElevatedButton(
             onPressed: () {
-              if (_controller.text == eventId) {
+              if (controller.text == eventId) {
                 Navigator.pop(ctx);
                 _submitCheckIn(eventId);
               } else {
