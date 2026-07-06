@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class TaskScreen extends StatefulWidget {
   const TaskScreen({super.key});
@@ -16,6 +17,14 @@ class _TaskScreenState extends State<TaskScreen> {
   final String _apiUrl = 'http://127.0.0.1:3000/api/tasks';
   final String _schedulesUrl = 'http://127.0.0.1:3000/api/schedules';
 
+  Map<String, String> _getHeaders() {
+    final token = Supabase.instance.client.auth.currentSession?.accessToken;
+    return {
+      'Content-Type': 'application/json',
+      if (token != null) 'Authorization': 'Bearer $token',
+    };
+  }
+
   @override
   void initState() {
     super.initState();
@@ -25,7 +34,7 @@ class _TaskScreenState extends State<TaskScreen> {
 
   Future<void> _fetchSchedules() async {
     try {
-      final response = await http.get(Uri.parse(_schedulesUrl));
+      final response = await http.get(Uri.parse(_schedulesUrl), headers: _getHeaders());
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         if (data['success']) {
@@ -41,7 +50,7 @@ class _TaskScreenState extends State<TaskScreen> {
 
   Future<void> _fetchTasks() async {
     try {
-      final response = await http.get(Uri.parse(_apiUrl));
+      final response = await http.get(Uri.parse(_apiUrl), headers: _getHeaders());
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         if (data['success']) {
@@ -53,6 +62,9 @@ class _TaskScreenState extends State<TaskScreen> {
           _showErrorSnackBar(data['message'] ?? 'Lỗi tải danh sách');
           setState(() => _isLoading = false);
         }
+      } else {
+        _showErrorSnackBar('Lỗi xác thực (Mã ${response.statusCode})');
+        setState(() => _isLoading = false);
       }
     } catch (e) {
       debugPrint('Error fetching tasks: $e');
@@ -76,7 +88,7 @@ class _TaskScreenState extends State<TaskScreen> {
     try {
       final response = await http.post(
         Uri.parse(_apiUrl),
-        headers: {'Content-Type': 'application/json'},
+        headers: _getHeaders(),
         body: json.encode({
           'title': title,
           'course_code': courseCode,
@@ -97,7 +109,7 @@ class _TaskScreenState extends State<TaskScreen> {
 
   Future<void> _deleteTask(String id) async {
     try {
-      await http.delete(Uri.parse('$_apiUrl/$id'));
+      await http.delete(Uri.parse('$_apiUrl/$id'), headers: _getHeaders());
       setState(() {
         _tasks.removeWhere((t) => t['id'] == id);
       });
@@ -212,7 +224,7 @@ class _TaskScreenState extends State<TaskScreen> {
     // Call PATCH /api/tasks/:id
     http.patch(
       Uri.parse('$_apiUrl/${_tasks[index]['id']}'),
-      headers: {'Content-Type': 'application/json'},
+      headers: _getHeaders(),
       body: json.encode({'status': _tasks[index]['status']}),
     );
   }

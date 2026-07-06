@@ -1,42 +1,48 @@
 const express = require('express');
 const router = express.Router();
-const axios = require('axios'); // Thêm axios
+const axios = require('axios');
+const authenticateUser = require('../middleware/auth');
 
-// Lấy danh sách lịch học (Mock data cho Sprint 1)
+// Sử dụng middleware xác thực
+router.use(authenticateUser);
+
+// Lấy danh sách lịch học từ Supabase
 router.get('/', async (req, res) => {
   try {
-    const today = new Date();
-    const mockSchedules = [
-      {
-        id: 'sch-1',
-        course_code: 'IT3140',
-        title: 'Quản lý dự án phần mềm',
-        room: 'D3-501',
-        start_time: new Date(today.setHours(8, 0, 0, 0)).toISOString(),
-        end_time: new Date(today.setHours(10, 15, 0, 0)).toISOString(),
-        type: 'LECTURE'
-      },
-      {
-        id: 'sch-2',
-        course_code: 'IT3140',
-        title: 'Làm bù bài tập nhóm (Tự học)',
-        room: 'Thư viện',
-        start_time: new Date(today.setHours(9, 30, 0, 0)).toISOString(),
-        end_time: new Date(today.setHours(11, 0, 0, 0)).toISOString(),
-        type: 'SELF_STUDY'
-      },
-      {
-        id: 'sch-3',
-        course_code: 'CLUB',
-        title: 'Sinh hoạt CLB IT',
-        room: 'Sân C2',
-        start_time: new Date(today.setHours(16, 0, 0, 0)).toISOString(),
-        end_time: new Date(today.setHours(18, 0, 0, 0)).toISOString(),
-        type: 'EXTRACURRICULAR'
-      }
-    ];
+    const { data: schedules, error } = await req.userClient
+      .from('schedules')
+      .select('*')
+      .order('start_time', { ascending: true });
 
-    res.json({ success: true, data: mockSchedules });
+    if (error) throw error;
+    res.json({ success: true, data: schedules || [] });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Thêm một lịch học/sự kiện mới
+router.post('/', async (req, res) => {
+  try {
+    const { course_code, course_name, room, start_time, end_time, type } = req.body;
+    
+    const newSchedule = {
+      user_id: req.user.id,
+      course_code,
+      course_name,
+      room,
+      start_time,
+      end_time,
+      type: type || 'LECTURE'
+    };
+
+    const { data, error } = await req.userClient
+      .from('schedules')
+      .insert([newSchedule])
+      .select();
+
+    if (error) throw error;
+    res.json({ success: true, data: data[0] });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

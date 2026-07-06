@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
@@ -14,8 +15,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
   bool _isLoading = false;
   bool _isOptimizing = false;
 
-  // Đổi IP này thành IP máy tính của bạn (đã xác định từ file kế hoạch: 192.168.11.236)
   final String _apiUrl = 'http://127.0.0.1:3000/api/schedules';
+
+  Map<String, String> _getHeaders() {
+    final token = Supabase.instance.client.auth.currentSession?.accessToken;
+    return {
+      'Content-Type': 'application/json',
+      if (token != null) 'Authorization': 'Bearer $token',
+    };
+  }
 
   @override
   void initState() {
@@ -26,12 +34,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
   Future<void> _fetchSchedules() async {
     setState(() => _isLoading = true);
     try {
-      final response = await http.get(Uri.parse(_apiUrl));
+      final response = await http.get(Uri.parse(_apiUrl), headers: _getHeaders());
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         if (data['success']) {
           setState(() => _schedules = data['data']);
         }
+      } else {
+        debugPrint('Failed to load schedules: ${response.statusCode}');
       }
     } catch (e) {
       debugPrint('Error fetching: $e');
@@ -45,7 +55,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     try {
       final response = await http.post(
         Uri.parse('$_apiUrl/optimize'),
-        headers: {'Content-Type': 'application/json'},
+        headers: _getHeaders(),
         body: json.encode({'events': _schedules}),
       );
       
@@ -125,50 +135,52 @@ class _CalendarScreenState extends State<CalendarScreen> {
           const SizedBox(height: 20),
           _isLoading 
             ? const Center(child: CircularProgressIndicator())
-            : Expanded(
-                child: ListView.builder(
-                  itemCount: _schedules.length,
-                  itemBuilder: (ctx, i) {
-                    final s = _schedules[i];
-                    return Card(
-                      color: Colors.white,
-                      margin: const EdgeInsets.only(bottom: 12),
-                      child: IntrinsicHeight(
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 70,
-                              padding: const EdgeInsets.all(8),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(_formatTime(s['start_time']), style: const TextStyle(fontWeight: FontWeight.bold)),
-                                  Text(_formatTime(s['end_time']), style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                                ],
-                              ),
-                            ),
-                            Container(width: 4, color: s['type'] == 'LECTURE' ? Colors.blue : Colors.green),
-                            Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.all(12),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(s['course_code'], style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold)),
-                                    Text(s['title'], style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                                    const SizedBox(height: 4),
-                                    Text('📍 ${s['room']}', style: const TextStyle(color: Colors.grey)),
-                                  ],
+            : _schedules.isEmpty 
+                ? const Center(child: Text("Không có lịch trình nào hôm nay", style: TextStyle(color: Colors.grey)))
+                : Expanded(
+                    child: ListView.builder(
+                      itemCount: _schedules.length,
+                      itemBuilder: (ctx, i) {
+                        final s = _schedules[i];
+                        return Card(
+                          color: Colors.white,
+                          margin: const EdgeInsets.only(bottom: 12),
+                          child: IntrinsicHeight(
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 70,
+                                  padding: const EdgeInsets.all(8),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(_formatTime(s['start_time']), style: const TextStyle(fontWeight: FontWeight.bold)),
+                                      Text(_formatTime(s['end_time']), style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              )
+                                Container(width: 4, color: s['type'] == 'LECTURE' ? Colors.blue : (s['type'] == 'EVENT' ? Colors.orange : Colors.green)),
+                                Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(12),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(s['course_code'], style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold)),
+                                        Text(s['title'] ?? s['course_name'] ?? 'Không tên', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                                        const SizedBox(height: 4),
+                                        Text('📍 ${s['room']}', style: const TextStyle(color: Colors.grey)),
+                                      ],
+                                    ),
+                                  ),
+                                )
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  )
         ],
       ),
     );

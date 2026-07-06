@@ -1,11 +1,14 @@
 const express = require('express');
 const router = express.Router();
-const supabase = require('../config/supabase');
+const authenticateUser = require('../middleware/auth');
+
+// Sử dụng middleware xác thực cho tất cả API tasks
+router.use(authenticateUser);
 
 // Lấy danh sách công việc (Tasks & Deadlines)
 router.get('/', async (req, res) => {
   try {
-    const { data: tasks, error } = await supabase
+    const { data: tasks, error } = await req.userClient
       .from('tasks')
       .select('*')
       .order('created_at', { ascending: false });
@@ -26,6 +29,7 @@ router.post('/', async (req, res) => {
     }
     
     const newTask = {
+      user_id: req.user.id, // Đóng dấu ID người dùng đang đăng nhập
       title,
       course_code,
       priority: priority || 'MEDIUM',
@@ -33,7 +37,7 @@ router.post('/', async (req, res) => {
       due_date: due_date || new Date().toISOString()
     };
 
-    const { data, error } = await supabase
+    const { data, error } = await req.userClient
       .from('tasks')
       .insert([newTask])
       .select();
@@ -49,7 +53,7 @@ router.post('/', async (req, res) => {
 router.patch('/:id', async (req, res) => {
   try {
     const { status } = req.body;
-    const { data, error } = await supabase
+    const { data, error } = await req.userClient
       .from('tasks')
       .update({ status })
       .eq('id', req.params.id)
@@ -65,7 +69,7 @@ router.patch('/:id', async (req, res) => {
 // Xóa công việc
 router.delete('/:id', async (req, res) => {
   try {
-    const { error } = await supabase
+    const { error } = await req.userClient
       .from('tasks')
       .delete()
       .eq('id', req.params.id);
