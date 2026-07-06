@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const axios = require('axios'); // Thêm axios
+const axios = require('axios'); // Thêm axios cho CF-16
+const { google } = require('googleapis'); // Thêm googleapis cho CF-03
 
 // Lấy danh sách lịch học (Mock data cho Sprint 1)
 router.get('/', async (req, res) => {
@@ -42,7 +43,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Thêm Endpoint kết nối với AI (Python)
+// [CF-16] Endpoint kết nối với AI (Python) kiểm tra trùng lịch
 router.post('/optimize', async (req, res) => {
   try {
     const { events } = req.body;
@@ -72,6 +73,28 @@ router.post('/optimize', async (req, res) => {
       message: 'Không thể kết nối đến AI Service. Đảm bảo Python đang chạy ở cổng 8000.' 
     });
   }
+});
+
+// [CF-03] Endpoint Đồng bộ sự kiện từ Google Calendar
+router.get('/sync-from-google', async (req, res) => {
+    try {
+        const oauth2Client = new google.auth.OAuth2(
+            process.env.GOOGLE_CLIENT_ID,
+            process.env.GOOGLE_CLIENT_SECRET,
+            process.env.GOOGLE_REDIRECT_URI
+        );
+
+        // TODO: Bổ sung logic truyền token thật và gọi calendar.events.list
+
+        res.json({ 
+            success: true, 
+            message: 'Đã kết nối thành công endpoint đồng bộ Google Calendar!', 
+            data: [] 
+        });
+    } catch (error) {
+        console.error('Lỗi khi đồng bộ Google Calendar:', error);
+        res.status(500).json({ success: false, error: 'Lỗi server' });
+    }
 });
 
 module.exports = router;
