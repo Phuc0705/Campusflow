@@ -1,0 +1,209 @@
+{
+	"info": {
+		"_postman_id": "c8b4a3a1-1234-5678-abcd-ef0123456789",
+		"name": "CampusFlow APIs",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "[CF-36] Quản lý Môn học (CRUD)",
+			"item": [
+				{
+					"name": "Lấy danh sách Môn học",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3000/api/courses",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"courses"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Thêm Môn học mới (Cần Auth)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-user-role",
+								"value": "admin",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"course_code\": \"SE301\",\r\n    \"course_name\": \"Quản lý dự án phần mềm\",\r\n    \"credits\": 3,\r\n    \"department\": \"Khoa Công nghệ phần mềm\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/courses",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"courses"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "[CF-06] Trích xuất Lịch học",
+			"item": [
+				{
+					"name": "Upload PDF Thời khóa biểu",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/schedules/import",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"schedules",
+								"import"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "[CF-33] Cấu hình Thông báo",
+			"item": [
+				{
+					"name": "Cập nhật Config",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email_enabled\": true,\r\n    \"app_enabled\": false,\r\n    \"telegram_enabled\": true,\r\n    \"telegram_chat_id\": \"987654321\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/notifications/config",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"notifications",
+								"config"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "[CF-14] Upload Storage",
+			"item": [
+				{
+					"name": "Upload File đính kèm",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/upload",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"upload"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "[CF-08] Sự kiện đột xuất",
+			"item": [
+				{
+					"name": "Tạo sự kiện mới",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"title\": \"Teambuilding Nhóm 5\",\r\n    \"organizer\": \"Leader\",\r\n    \"location\": \"Phòng Lab\",\r\n    \"start_time\": \"2026-08-01T08:00:00Z\",\r\n    \"end_time\": \"2026-08-01T10:00:00Z\",\r\n    \"description\": \"Chạy nước rút cho Sprint cuối\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/events",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"events"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
