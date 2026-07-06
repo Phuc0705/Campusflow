@@ -20,6 +20,7 @@ router.get('/', async (req, res) => {
     res.json({ success: true, data: events || [], checkInCount: count || 0 });
   } catch (error) {
     console.error("Lỗi get events: ", error.message);
+    // Trả về mock data nếu db chưa có table
     res.json({ success: true, data: [
       { 
         id: 'evt-1', 
@@ -30,26 +31,6 @@ router.get('/', async (req, res) => {
         points: 5
       }
     ], checkInCount: 0 });
-  }
-});
-
-// [CF-08] API tạo thủ công sự kiện đột xuất vào bảng events
-router.post('/', async (req, res) => {
-  try {
-    const { title, organizer, location, start_time, end_time, description } = req.body;
-    if (!title || !start_time || !end_time) {
-      return res.status(400).json({ success: false, message: 'Thiếu thông tin bắt buộc (title, start_time, end_time)' });
-    }
-
-    const { data, error } = await supabase
-      .from('events')
-      .insert([{ title, organizer, location, start_time, end_time, description }])
-      .select();
-
-    if (error) throw error;
-    res.json({ success: true, message: 'Tạo sự kiện thành công', data });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
   }
 });
 

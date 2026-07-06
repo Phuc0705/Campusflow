@@ -1,8 +1,8 @@
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
-import AdminEventsReview from './pages/AdminEventsReview';
 import './index.css';
-nfunction App() {
+
+function App() {
   return (
     <BrowserRouter>
       <div className="app-layout">
@@ -12,11 +12,11 @@ import './index.css';
             <span className="badge">Admin</span>
           </div>
           <nav className="nav-menu">
-            <Link to="/" className="nav-item">Dashboard</Link>
+            <Link to="/" className="nav-item active">Dashboard</Link>
             <Link to="#" className="nav-item">Quản lý Sinh viên</Link>
-            <Link to="/" className="nav-item">Sự kiện & CLB</Link>
+            <Link to="#" className="nav-item">Sự kiện & CLB</Link>
             <Link to="#" className="nav-item">System Logs</Link>
-            <Link to="/admin/events-review" className="nav-item">Duyệt Sự kiện (Admin)</Link>
+            <Link to="#" className="nav-item">Cài đặt</Link>
           </nav>
         </aside>
         
@@ -32,7 +32,6 @@ import './index.css';
           <div className="content-area">
             <Routes>
               <Route path="/" element={<Dashboard />} />
-              <Route path="/admin/events-review" element={<AdminEventsReview />} />
             </Routes>
           </div>
         </main>

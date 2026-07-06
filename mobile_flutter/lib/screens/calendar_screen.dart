@@ -15,7 +15,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   bool _isOptimizing = false;
 
   // Đổi IP này thành IP máy tính của bạn (đã xác định từ file kế hoạch: 192.168.11.236)
-  final String _apiUrl = 'http://192.168.11.236:3000/api/schedules';
+  final String _apiUrl = 'http://127.0.0.1:3000/api/schedules';
 
   @override
   void initState() {
@@ -54,7 +54,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
         String msg = '';
         if (data['conflicts'].isNotEmpty) {
           msg += '🚨 PHÁT HIỆN TRÙNG LỊCH:\n';
-          for (var c in data['conflicts']) msg += '- ${c['message']}\n';
+          for (var c in data['conflicts']) {
+            msg += '- ${c['message']}\n';
+          }
           msg += '\n';
         } else {
           msg += '✅ Lịch trình an toàn.\n\n';
