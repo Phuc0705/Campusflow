@@ -20,7 +20,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Future<void> _showEditProfileDialog(String currentMajor, String currentYear) async {
+  Future<void> _showEditProfileDialog(String currentName, String currentMajor, String currentYear) async {
+    final nameController = TextEditingController(text: currentName != 'Người dùng CampusFlow' ? currentName : '');
     final majorController = TextEditingController(text: currentMajor != 'Đang cập nhật...' ? currentMajor : '');
     final yearController = TextEditingController(text: currentYear != 'Đang cập nhật...' ? currentYear : '');
     
@@ -31,6 +32,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            TextField(
+              controller: nameController,
+              decoration: const InputDecoration(
+                labelText: 'Họ và tên', 
+                hintText: 'VD: Nguyễn Văn A',
+                prefixIcon: Icon(Icons.person),
+              ),
+            ),
+            const SizedBox(height: 15),
             TextField(
               controller: majorController,
               decoration: const InputDecoration(
@@ -58,6 +68,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               await Supabase.instance.client.auth.updateUser(
                 UserAttributes(
                   data: {
+                    'full_name': nameController.text.trim(),
                     'major': majorController.text.trim(),
                     'academic_year': yearController.text.trim(),
                   },
@@ -142,7 +153,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                       const SizedBox(height: 10),
                       TextButton.icon(
-                        onPressed: () => _showEditProfileDialog(major, academicYear),
+                        onPressed: () => _showEditProfileDialog(fullName, major, academicYear),
                         icon: const Icon(Icons.edit, size: 18),
                         label: const Text('Chỉnh sửa thông tin', style: TextStyle(fontWeight: FontWeight.bold)),
                         style: TextButton.styleFrom(foregroundColor: Colors.blueAccent),

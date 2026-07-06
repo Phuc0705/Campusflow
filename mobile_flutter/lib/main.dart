@@ -33,7 +33,9 @@ class CampusFlowApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const LoginScreen(),
+      home: Supabase.instance.client.auth.currentSession != null 
+          ? const MainNavigationScreen() 
+          : const LoginScreen(),
       debugShowCheckedModeBanner: false,
     );
   }

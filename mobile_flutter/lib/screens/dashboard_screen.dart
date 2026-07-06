@@ -2,11 +2,16 @@ import 'package:flutter/material.dart';
 import 'event_screen.dart';
 import 'task_screen.dart';
 
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final user = Supabase.instance.client.auth.currentUser;
+    final String fullName = user?.userMetadata?['full_name'] ?? 'Người dùng CampusFlow';
+
     return Container(
       color: Colors.white,
       padding: const EdgeInsets.all(20.0),
@@ -17,19 +22,22 @@ class DashboardScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Expanded(
-                child: Text('Xin chào,\nNguyễn Văn A 👋', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+              Expanded(
+                child: Text('Xin chào,\n$fullName 👋', style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
               ),
               Container(
                 decoration: BoxDecoration(
                   color: Colors.blue[50],
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: IconButton(
-                  icon: const Icon(Icons.checklist, color: Colors.blueAccent, size: 28),
-                  onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const TaskScreen()));
-                  },
+                child: Tooltip(
+                  message: 'Quản lý Deadline',
+                  child: IconButton(
+                    icon: const Icon(Icons.checklist, color: Colors.blueAccent, size: 28),
+                    onPressed: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => const TaskScreen()));
+                    },
+                  ),
                 ),
               ),
             ],
