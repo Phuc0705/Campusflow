@@ -14,23 +14,23 @@ app.get('/api/health', (req, res) => {
 });
 
 // Import routes
-const taskRoutes = require('./routes/taskRoutes');
-const eventRoutes = require('./routes/eventRoutes');
 const authRoutes = require('./routes/authRoutes');
 const scheduleRoutes = require('./routes/scheduleRoutes');
-const wellnessRoutes = require('./routes/wellnessRoutes');
+const taskRoutes = require('./routes/taskRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
-const uploadRoutes = require('./routes/uploadRoutes');
-const courseRoutes = require('./routes/courseRoutes');
+const wellnessRoutes = require('./routes/wellnessRoutes');
+const eventRoutes = require('./routes/eventRoutes');
 
-app.use('/api/tasks', taskRoutes);
-app.use('/api/events', eventRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/schedules', scheduleRoutes);
-app.use('/api/wellness', wellnessRoutes);
+app.use('/api/tasks', taskRoutes);
 app.use('/api/notifications', notificationRoutes);
-app.use('/api/upload', uploadRoutes);
-app.use('/api/courses', courseRoutes);
+app.use('/api/wellness', wellnessRoutes);
+app.use('/api/events', eventRoutes);
+
+app.get('/api/features/health', (req, res) => {
+  res.json({ success: true, message: 'CampusFlow advanced features are online.' });
+});
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

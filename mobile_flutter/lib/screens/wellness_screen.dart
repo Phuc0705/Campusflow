@@ -26,19 +26,14 @@ class _WellnessScreenState extends State<WellnessScreen> {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         if (data['success']) {
-          if (!mounted) return;
           setState(() {
             _wellnessData = data['data'];
             _isLoading = false;
           });
         }
-      } else {
-        if (!mounted) return;
-        setState(() => _isLoading = false);
       }
     } catch (e) {
       debugPrint('Error: $e');
-      if (!mounted) return;
       setState(() => _isLoading = false);
     }
   }

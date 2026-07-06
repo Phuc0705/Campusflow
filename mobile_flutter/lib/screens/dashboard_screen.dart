@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'campus_life_screen.dart';
 import 'task_screen.dart';
+import 'history_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -73,6 +74,25 @@ class DashboardScreen extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const CampusLifeScreen()),
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            height: 60,
+            child: OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Colors.blueAccent),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+              ),
+              icon: const Icon(Icons.history, color: Colors.blueAccent),
+              label: const Text('Xem lịch sử Check-in & Deadline', style: TextStyle(fontSize: 15, color: Colors.blueAccent)),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const HistoryScreen()),
                 );
               },
             ),

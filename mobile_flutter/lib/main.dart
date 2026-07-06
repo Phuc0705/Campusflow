@@ -4,6 +4,7 @@ import 'screens/dashboard_screen.dart';
 import 'screens/calendar_screen.dart';
 import 'screens/focus_screen.dart';
 import 'screens/wellness_screen.dart';
+import 'screens/qr_scanner_screen.dart';
 
 void main() {
   runApp(const CampusFlowApp());
@@ -73,6 +74,13 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           NavigationDestination(icon: Icon(Icons.local_fire_department_outlined), selectedIcon: Icon(Icons.local_fire_department), label: 'Focus'),
           NavigationDestination(icon: Icon(Icons.favorite_border), selectedIcon: Icon(Icons.favorite), label: 'Sức khỏe'),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(context, MaterialPageRoute(builder: (_) => const QrScannerScreen()));
+        },
+        backgroundColor: const Color(0xFF2563eb),
+        child: const Icon(Icons.qr_code_scanner),
       ),
     );
   }
