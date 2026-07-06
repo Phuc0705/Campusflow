@@ -2,9 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'login_screen.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  
   Future<void> _signOut(BuildContext context) async {
     await Supabase.instance.client.auth.signOut();
     if (!context.mounted) return;
@@ -13,12 +19,74 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
+  Future<void> _showEditProfileDialog(String currentMajor, String currentYear) async {
+    final majorController = TextEditingController(text: currentMajor != 'Đang cập nhật...' ? currentMajor : '');
+    final yearController = TextEditingController(text: currentYear != 'Đang cập nhật...' ? currentYear : '');
+    
+    await showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Cập nhật thông tin', style: TextStyle(fontWeight: FontWeight.bold)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: majorController,
+              decoration: const InputDecoration(
+                labelText: 'Chuyên ngành', 
+                hintText: 'VD: Kỹ thuật Phần mềm',
+                prefixIcon: Icon(Icons.school),
+              ),
+            ),
+            const SizedBox(height: 15),
+            TextField(
+              controller: yearController,
+              decoration: const InputDecoration(
+                labelText: 'Niên khóa', 
+                hintText: 'VD: K66',
+                prefixIcon: Icon(Icons.badge),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Hủy', style: TextStyle(color: Colors.grey))),
+          ElevatedButton(
+            onPressed: () async {
+              // Update user metadata in Supabase
+              await Supabase.instance.client.auth.updateUser(
+                UserAttributes(
+                  data: {
+                    'major': majorController.text.trim(),
+                    'academic_year': yearController.text.trim(),
+                  },
+                ),
+              );
+              if (ctx.mounted) {
+                Navigator.pop(ctx);
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blueAccent,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Lưu'),
+          ),
+        ],
+      ),
+    );
+    // Refresh UI to show updated metadata
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = Supabase.instance.client.auth.currentUser;
     final String fullName = user?.userMetadata?['full_name'] ?? 'Người dùng CampusFlow';
     final String email = user?.email ?? 'Chưa cập nhật email';
     final String avatarUrl = user?.userMetadata?['avatar_url'] ?? '';
+    final String major = user?.userMetadata?['major'] ?? 'Đang cập nhật...';
+    final String academicYear = user?.userMetadata?['academic_year'] ?? 'Đang cập nhật...';
 
     return Scaffold(
       backgroundColor: Colors.grey[100],
@@ -49,27 +117,34 @@ class ProfileScreen extends StatelessWidget {
               style: const TextStyle(fontSize: 16, color: Colors.grey),
             ),
             const SizedBox(height: 40),
-            // Thẻ thông tin sinh viên (Giả lập vì Google chỉ trả về Tên/Email)
+            // Thẻ thông tin sinh viên
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Card(
                 color: Colors.white,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                 elevation: 2,
-                child: const Padding(
-                  padding: EdgeInsets.all(20.0),
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
                   child: Column(
                     children: [
                       ListTile(
-                        leading: Icon(Icons.school, color: Colors.blue),
-                        title: Text('Chuyên ngành'),
-                        subtitle: Text('Đang cập nhật...'),
+                        leading: const Icon(Icons.school, color: Colors.blue),
+                        title: const Text('Chuyên ngành'),
+                        subtitle: Text(major),
                       ),
-                      Divider(),
+                      const Divider(),
                       ListTile(
-                        leading: Icon(Icons.badge, color: Colors.orange),
-                        title: Text('Khóa học'),
-                        subtitle: Text('Đang cập nhật...'),
+                        leading: const Icon(Icons.badge, color: Colors.orange),
+                        title: const Text('Khóa học / Niên khóa'),
+                        subtitle: Text(academicYear),
+                      ),
+                      const SizedBox(height: 10),
+                      TextButton.icon(
+                        onPressed: () => _showEditProfileDialog(major, academicYear),
+                        icon: const Icon(Icons.edit, size: 18),
+                        label: const Text('Chỉnh sửa thông tin', style: TextStyle(fontWeight: FontWeight.bold)),
+                        style: TextButton.styleFrom(foregroundColor: Colors.blueAccent),
                       ),
                     ],
                   ),
