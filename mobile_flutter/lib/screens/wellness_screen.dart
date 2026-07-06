@@ -12,7 +12,7 @@ class WellnessScreen extends StatefulWidget {
 class _WellnessScreenState extends State<WellnessScreen> {
   Map<String, dynamic>? _wellnessData;
   bool _isLoading = true;
-  final String _apiUrl = 'http://192.168.11.236:3000/api/wellness';
+  final String _apiUrl = 'http://127.0.0.1:3000/api/wellness';
 
   @override
   void initState() {
@@ -26,19 +26,14 @@ class _WellnessScreenState extends State<WellnessScreen> {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         if (data['success']) {
-          if (!mounted) return;
           setState(() {
             _wellnessData = data['data'];
             _isLoading = false;
           });
         }
-      } else {
-        if (!mounted) return;
-        setState(() => _isLoading = false);
       }
     } catch (e) {
       debugPrint('Error: $e');
-      if (!mounted) return;
       setState(() => _isLoading = false);
     }
   }

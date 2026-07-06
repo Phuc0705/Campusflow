@@ -1,60 +1,47 @@
 const express = require('express');
 const router = express.Router();
-const supabase = require('../config/supabase');
+const authenticateUser = require('../middleware/auth');
+const supabase = require('../config/supabase'); // Admin client fallback if needed
 
-// Lấy danh sách sự kiện Campus Life
+// Mọi request vào Events (Đăng ký) đều cần Auth. Tuy nhiên, xem danh sách thì có thể Auth hoặc không.
+// Để đơn giản và bảo mật, ta yêu cầu Auth cho mọi request.
+router.use(authenticateUser);
+
+// Lấy danh sách sự kiện Campus Life và trạng thái đăng ký của user hiện tại
 router.get('/', async (req, res) => {
   try {
-    const { data: events, error } = await supabase
+    const { data: events, error } = await req.userClient
       .from('events')
       .select('*')
-      .order('created_at', { ascending: false });
+      .order('start_time', { ascending: true });
 
     if (error) throw error;
 
-    // Lấy số lượng người đã điểm danh (để hiển thị lên web admin)
-    const { count } = await supabase
+    // Lấy danh sách các sự kiện mà user hiện tại đã đăng ký
+    const { data: registrations, error: regError } = await req.userClient
       .from('event_registrations')
-      .select('*', { count: 'exact', head: true });
+      .select('event_id')
+      .eq('user_id', req.user.id);
+      
+    if (regError) throw regError;
+    
+    const registeredEventIds = registrations.map(r => r.event_id);
 
-    res.json({ success: true, data: events || [], checkInCount: count || 0 });
+    // Map lại data để Mobile dễ bề hiển thị
+    const formattedEvents = (events || []).map(event => ({
+      ...event,
+      is_registered: registeredEventIds.includes(event.id)
+    }));
+
+    res.json({ success: true, data: formattedEvents });
   } catch (error) {
     console.error("Lỗi get events: ", error.message);
-    res.json({ success: true, data: [
-      { 
-        id: 'evt-1', 
-        title: 'Ngày hội Việc làm IT', 
-        club: 'Khoa CNTT', 
-        location: 'Hội trường A',
-        date: new Date().toISOString(),
-        points: 5
-      }
-    ], checkInCount: 0 });
-  }
-});
-
-// [CF-08] API tạo thủ công sự kiện đột xuất vào bảng events
-router.post('/', async (req, res) => {
-  try {
-    const { title, organizer, location, start_time, end_time, description } = req.body;
-    if (!title || !start_time || !end_time) {
-      return res.status(400).json({ success: false, message: 'Thiếu thông tin bắt buộc (title, start_time, end_time)' });
-    }
-
-    const { data, error } = await supabase
-      .from('events')
-      .insert([{ title, organizer, location, start_time, end_time, description }])
-      .select();
-
-    if (error) throw error;
-    res.json({ success: true, message: 'Tạo sự kiện thành công', data });
-  } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 });
 
-// Quét mã QR điểm danh (từ Mobile)
-router.post('/checkin', async (req, res) => {
+// Nút bấm "Đăng ký tham gia"
+router.post('/register', async (req, res) => {
   try {
     const { event_id } = req.body;
     
@@ -62,16 +49,50 @@ router.post('/checkin', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Mã sự kiện không hợp lệ' });
     }
 
-    // Insert điểm danh vào db
-    const { error } = await supabase
-      .from('event_registrations')
-      .insert([{ event_id }]);
+    // 1. Lấy thông tin chi tiết sự kiện
+    const { data: eventData, error: eventError } = await req.userClient
+      .from('events')
+      .select('*')
+      .eq('id', event_id)
+      .single();
 
-    if (error) throw error;
+    if (eventError || !eventData) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy sự kiện' });
+    }
+
+    // 2. Insert vào bảng danh sách đăng ký
+    const { error: regError } = await req.userClient
+      .from('event_registrations')
+      .insert([{ event_id, user_id: req.user.id }]);
+
+    if (regError) {
+      // Nếu lỗi do trùng lặp (đã đăng ký rồi)
+      if (regError.code === '23505') {
+        return res.status(400).json({ success: false, message: 'Bạn đã đăng ký sự kiện này rồi!' });
+      }
+      throw regError;
+    }
+
+    // 3. TỰ ĐỘNG CHÈN VÀO THỜI KHÓA BIỂU
+    const newSchedule = {
+      user_id: req.user.id,
+      course_code: 'EVENT',
+      course_name: eventData.title,
+      room: eventData.location,
+      start_time: eventData.start_time,
+      end_time: eventData.end_time,
+      type: 'EVENT'
+    };
+
+    const { error: schError } = await req.userClient
+      .from('schedules')
+      .insert([newSchedule]);
+
+    if (schError) throw schError;
 
     res.json({ 
       success: true, 
-      message: 'Điểm danh thành công! Đã lưu vào CSDL.'
+      message: 'Đăng ký thành công! Đã tự động thêm vào Thời khóa biểu.'
     });
 
   } catch (error) {
