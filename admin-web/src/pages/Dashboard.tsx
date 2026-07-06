@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Users, Activity, QrCode, Zap } from 'lucide-react';
+import WellnessChart from '../components/WellnessChart';
+import EventsList from '../components/EventsList';
+import Leaderboard from '../components/Leaderboard';
+import RelaxSuggestionsPopup from '../components/RelaxSuggestionsPopup';
 
 export default function Dashboard() {
   const [stats, setStats] = useState({
@@ -9,77 +13,73 @@ export default function Dashboard() {
     aiOptimizations: 85,
   });
 
-  const [recentEvents, setRecentEvents] = useState<any[]>([]);
+  const [wellness, setWellness] = useState<any | null>(null);
+  const [showRelaxPopup, setShowRelaxPopup] = useState(false);
+  const [showBurnoutAlert, setShowBurnoutAlert] = useState(false);
 
   useEffect(() => {
-    // Gọi API lấy dữ liệu thực tế từ Backend
-    const fetchDashboardData = async () => {
-      try {
-        const res = await fetch('http://localhost:3000/api/events');
-        const data = await res.json();
-        if (data.success) {
-          setRecentEvents(data.data);
-          setStats(prev => ({ ...prev, qrCheckins: data.checkInCount }));
-        }
-      } catch (error) {
-        console.error('Lỗi khi lấy dữ liệu Admin:', error);
-      }
-    };
-
-    fetchDashboardData();
-    // Refresh mỗi 5 giây để xem check-in real-time
-    const interval = setInterval(fetchDashboardData, 5000);
-    return () => clearInterval(interval);
+    // Tạm thời dùng mock data để bạn test UI trước khi nối API
+    const mockWellness = { study_hours: 35, work_hours: 30, sleep_hours_avg: 5 };
+    setWellness(mockWellness);
+    
+    const totalHours = mockWellness.study_hours + mockWellness.work_hours;
+    setShowBurnoutAlert(totalHours > 60);
   }, []);
 
   return (
-    <div className="dashboard-container" style={{ padding: '20px' }}>
-      <h1 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '30px' }}>Bảng điều khiển Nhà trường (Real-time)</h1>
+    <div className="p-6 bg-gray-50 min-h-screen">
+      <h1 className="text-2xl font-bold text-gray-800 mb-6">Bảng điều khiển Nhà trường (Real-time)</h1>
       
-      {/* Thống kê chung */}
-      <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '40px' }}>
-        <div className="stat-card" style={{ padding: '20px', backgroundColor: '#fff', borderRadius: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}><Users size={24} color="#3b82f6" /><h3 style={{ marginLeft: '10px', color: '#6b7280' }}>Tổng Sinh viên</h3></div>
-          <p style={{ fontSize: '28px', fontWeight: 'bold' }}>{stats.totalStudents}</p>
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
+          <div className="p-3 bg-blue-100 text-blue-600 rounded-lg"><Users size={24} /></div>
+          <div><h3 className="text-sm text-gray-500">Tổng Sinh viên</h3><div className="text-xl font-bold">{stats.totalStudents}</div></div>
         </div>
-        <div className="stat-card" style={{ padding: '20px', backgroundColor: '#fff', borderRadius: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}><Activity size={24} color="#10b981" /><h3 style={{ marginLeft: '10px', color: '#6b7280' }}>Đang Online</h3></div>
-          <p style={{ fontSize: '28px', fontWeight: 'bold', color: '#10b981' }}>{stats.activeSessions}</p>
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
+          <div className="p-3 bg-green-100 text-green-600 rounded-lg"><Activity size={24} /></div>
+          <div><h3 className="text-sm text-gray-500">Đang Online</h3><div className="text-xl font-bold">{stats.activeSessions}</div></div>
         </div>
-        <div className="stat-card" style={{ padding: '20px', backgroundColor: '#fff', borderRadius: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', border: '2px solid #8b5cf6' }}>
-          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}><QrCode size={24} color="#8b5cf6" /><h3 style={{ marginLeft: '10px', color: '#6b7280', fontWeight: 'bold' }}>QR Điểm danh (API)</h3></div>
-          <p style={{ fontSize: '28px', fontWeight: 'bold', color: '#8b5cf6' }}>{stats.qrCheckins}</p>
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
+          <div className="p-3 bg-purple-100 text-purple-600 rounded-lg"><QrCode size={24} /></div>
+          <div><h3 className="text-sm text-gray-500">QR Điểm danh</h3><div className="text-xl font-bold">{stats.qrCheckins}</div></div>
         </div>
-        <div className="stat-card" style={{ padding: '20px', backgroundColor: '#fff', borderRadius: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}><Zap size={24} color="#f59e0b" /><h3 style={{ marginLeft: '10px', color: '#6b7280' }}>AI Tối ưu hóa</h3></div>
-          <p style={{ fontSize: '28px', fontWeight: 'bold', color: '#f59e0b' }}>{stats.aiOptimizations}</p>
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
+          <div className="p-3 bg-red-100 text-red-600 rounded-lg"><Zap size={24} /></div>
+          <div><h3 className="text-sm text-gray-500">AI Tối ưu hóa</h3><div className="text-xl font-bold">{stats.aiOptimizations}</div></div>
         </div>
       </div>
 
-      {/* Sự kiện Campus Life */}
-      <div style={{ padding: '20px', backgroundColor: '#fff', borderRadius: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
-        <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '20px' }}>Sự kiện Campus Life (Kết nối Backend)</h2>
-        <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ borderBottom: '1px solid #e5e7eb', color: '#6b7280' }}>
-              <th style={{ padding: '10px' }}>Tên sự kiện</th>
-              <th style={{ padding: '10px' }}>Đơn vị tổ chức</th>
-              <th style={{ padding: '10px' }}>Địa điểm</th>
-              <th style={{ padding: '10px' }}>Thời gian</th>
-            </tr>
-          </thead>
-          <tbody>
-            {recentEvents.map((event) => (
-              <tr key={event.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                <td style={{ padding: '15px 10px', fontWeight: 'bold' }}>{event.title}</td>
-                <td style={{ padding: '15px 10px', color: '#4b5563' }}>{event.club}</td>
-                <td style={{ padding: '15px 10px', color: '#4b5563' }}>{event.location}</td>
-                <td style={{ padding: '15px 10px', color: '#6b7280' }}>{new Date(event.date).toLocaleString('vi-VN')}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {/* Burnout Alert (CF-22) */}
+      {showBurnoutAlert && wellness && (
+        <div className="bg-red-50 border border-red-200 p-4 rounded-xl mb-6 flex flex-col items-start gap-2 shadow-sm">
+          <h3 className="font-bold text-red-700 flex items-center gap-2">⚠️ Cảnh báo Burnout</h3>
+          <p className="text-red-600 text-sm">{`Tổng giờ học + làm của sinh viên mẫu: ${wellness.study_hours + wellness.work_hours} giờ/tuần — vượt ngưỡng an toàn (60 giờ).`}</p>
+          <button 
+            onClick={() => setShowRelaxPopup(true)} 
+            className="mt-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors"
+          >
+            Gợi ý hoạt động thư giãn
+          </button>
+        </div>
+      )}
+
+      {/* Charts & Leaderboard */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <div className="col-span-2 bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-700 mb-4">Wellness: Giờ học / Làm / Ngủ</h3>
+          <div className="h-64 flex items-center justify-center">
+            <WellnessChart data={wellness} />
+          </div>
+        </div>
+        
+        <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+          <Leaderboard />
+        </div>
       </div>
+
+      <EventsList />
+      <RelaxSuggestionsPopup open={showRelaxPopup} onClose={() => setShowRelaxPopup(false)} />
     </div>
   );
 }
