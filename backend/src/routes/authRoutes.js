@@ -10,7 +10,11 @@ const MOCK_UNIVERSITY_DATABASE = {
     year: 'K68',
     schedules: [
       { course_code: 'IT3040', course_name: 'Nhập môn CNPM', type: 'LECTURE', start_offset_days: 0, duration_hours: 2 },
-      { course_code: 'IT3170', course_name: 'Thuật toán ứng dụng', type: 'LAB', start_offset_days: 1, duration_hours: 3 },
+      { course_code: 'IT3170', course_name: 'Thuật toán ứng dụng', type: 'LAB', start_offset_days: 0, duration_hours: 3 },
+      { course_code: 'IT3280', course_name: 'Mạng máy tính', type: 'LECTURE', start_offset_days: 1, duration_hours: 2 },
+      { course_code: 'IT3390', course_name: 'Thiết kế Giao diện', type: 'LECTURE', start_offset_days: 2, duration_hours: 2 },
+      { course_code: 'PE1010', course_name: 'Giáo dục Thể chất', type: 'EVENT', start_offset_days: 3, duration_hours: 2 },
+      { course_code: 'IT3040', course_name: 'Thực hành CNPM', type: 'LAB', start_offset_days: 4, duration_hours: 3 },
     ]
   },
   '2302700002': {
@@ -19,7 +23,10 @@ const MOCK_UNIVERSITY_DATABASE = {
     year: 'K68',
     schedules: [
       { course_code: 'IT3040', course_name: 'Nhập môn CNPM', type: 'LECTURE', start_offset_days: 0, duration_hours: 2 },
-      { course_code: 'IT3100', course_name: 'Lập trình Hướng đối tượng', type: 'LECTURE', start_offset_days: 2, duration_hours: 2 },
+      { course_code: 'IT3100', course_name: 'Lập trình Hướng đối tượng', type: 'LECTURE', start_offset_days: 1, duration_hours: 2 },
+      { course_code: 'IT3120', course_name: 'Cơ sở dữ liệu', type: 'LECTURE', start_offset_days: 2, duration_hours: 3 },
+      { course_code: 'IT3100', course_name: 'Thực hành OOP', type: 'LAB', start_offset_days: 3, duration_hours: 3 },
+      { course_code: 'IT3040', course_name: 'Thực hành CNPM', type: 'LAB', start_offset_days: 4, duration_hours: 2 },
     ]
   },
   '2302700003': {
@@ -27,8 +34,11 @@ const MOCK_UNIVERSITY_DATABASE = {
     major: 'An toàn Thông tin',
     year: 'K68',
     schedules: [
-      { course_code: 'IT3120', course_name: 'Cơ sở dữ liệu', type: 'LECTURE', start_offset_days: 1, duration_hours: 2 },
-      { course_code: 'IT3120', course_name: 'Thực hành CSDL', type: 'LAB', start_offset_days: 3, duration_hours: 3 },
+      { course_code: 'IT3120', course_name: 'Cơ sở dữ liệu', type: 'LECTURE', start_offset_days: 0, duration_hours: 2 },
+      { course_code: 'IT3150', course_name: 'Kiến trúc máy tính', type: 'LECTURE', start_offset_days: 1, duration_hours: 3 },
+      { course_code: 'IT3120', course_name: 'Thực hành CSDL', type: 'LAB', start_offset_days: 2, duration_hours: 3 },
+      { course_code: 'IT4242', course_name: 'Mật mã học', type: 'LECTURE', start_offset_days: 3, duration_hours: 2 },
+      { course_code: 'IT4242', course_name: 'Thực hành Mật mã', type: 'LAB', start_offset_days: 4, duration_hours: 3 },
     ]
   },
   '2302700004': {
@@ -37,7 +47,10 @@ const MOCK_UNIVERSITY_DATABASE = {
     year: 'K68',
     schedules: [
       { course_code: 'IT3150', course_name: 'Kiến trúc máy tính', type: 'LECTURE', start_offset_days: 0, duration_hours: 2 },
-      { course_code: 'IT3160', course_name: 'Hệ điều hành', type: 'LECTURE', start_offset_days: 2, duration_hours: 2 },
+      { course_code: 'IT3160', course_name: 'Hệ điều hành', type: 'LECTURE', start_offset_days: 1, duration_hours: 2 },
+      { course_code: 'IT3150', course_name: 'Thực hành KTMT', type: 'LAB', start_offset_days: 2, duration_hours: 3 },
+      { course_code: 'IT3160', course_name: 'Thực hành HĐH', type: 'LAB', start_offset_days: 3, duration_hours: 3 },
+      { course_code: 'MI2020', course_name: 'Xác suất thống kê', type: 'LECTURE', start_offset_days: 4, duration_hours: 3 },
     ]
   }
 };

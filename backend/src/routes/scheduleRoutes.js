@@ -48,34 +48,66 @@ router.post('/', async (req, res) => {
   }
 });
 
-// Thêm Endpoint kết nối với AI (Python)
+// Thêm Endpoint kết nối với AI (Hiện tại xử lý bằng Node.js trực tiếp để tiện demo)
 router.post('/optimize', async (req, res) => {
   try {
     const { events } = req.body;
     
-    // 1. Gửi request sang Python AI Service (cổng 8000) bằng axios
-    const aiResponse = await axios.post('http://127.0.0.1:8000/api/optimize/check-conflict', {
-      events, duration_minutes: 60
-    });
-    const conflictData = aiResponse.data;
+    // AI Mock Logic: Tìm xung đột (trùng lịch)
+    const conflicts = [];
+    if (events && events.length > 1) {
+      for (let i = 0; i < events.length; i++) {
+        for (let j = i + 1; j < events.length; j++) {
+          const start1 = new Date(events[i].start_time).getTime();
+          const end1 = new Date(events[i].end_time).getTime();
+          const start2 = new Date(events[j].start_time).getTime();
+          const end2 = new Date(events[j].end_time).getTime();
+          
+          // Kiểm tra giao nhau
+          if (start1 < end2 && start2 < end1) {
+            conflicts.push({
+              event_1: events[i],
+              event_2: events[j],
+              message: `Trùng lịch giữa ${events[i].course_code} và ${events[j].course_code}`
+            });
+          }
+        }
+      }
+    }
 
-    const suggestResponse = await axios.post('http://127.0.0.1:8000/api/optimize/suggest-slots', {
-      events, duration_minutes: 60
-    });
-    const suggestData = suggestResponse.data;
+    // AI Mock Logic: Gợi ý giờ tự học (Chỉ gợi ý nếu rảnh vào buổi chiều)
+    const suggested_slots = [];
+    if (events && events.length > 0) {
+      const today = new Date();
+      today.setHours(14, 0, 0, 0); // Đề xuất lúc 14h
+      
+      const isBusyAt14h = events.some(e => {
+        const s = new Date(e.start_time).getTime();
+        const end = new Date(e.end_time).getTime();
+        const suggestTime = today.getTime();
+        return suggestTime >= s && suggestTime < end;
+      });
+
+      if (!isBusyAt14h) {
+        suggested_slots.push({
+          start: today.toISOString(),
+          message: 'Khung giờ chiều từ 14:00 rất tốt để tự học và làm bài tập (AI Đề xuất dựa trên nhịp sinh học).'
+        });
+      }
+    }
 
     // 2. Gộp kết quả và trả về cho Mobile
     res.json({ 
       success: true, 
-      conflicts: conflictData.conflicts || [],
-      suggested_slots: suggestData.suggested_slots || []
+      conflicts,
+      suggested_slots
     });
 
   } catch (error) {
     console.error('Lỗi khi gọi AI Service:', error.message);
     res.status(500).json({ 
       success: false, 
-      message: 'Không thể kết nối đến AI Service. Đảm bảo Python đang chạy ở cổng 8000.' 
+      message: 'Không thể xử lý dữ liệu AI.' 
     });
   }
 });

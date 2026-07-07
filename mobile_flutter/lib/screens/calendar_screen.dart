@@ -115,7 +115,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Thời khóa biểu Hôm nay', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          const Text('Thời khóa biểu', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
           const SizedBox(height: 15),
           SizedBox(
             width: double.infinity,
@@ -137,49 +137,82 @@ class _CalendarScreenState extends State<CalendarScreen> {
             ? const Center(child: CircularProgressIndicator())
             : _schedules.isEmpty 
                 ? const Center(child: Text("Không có lịch trình nào hôm nay", style: TextStyle(color: Colors.grey)))
-                : Expanded(
-                    child: ListView.builder(
-                      itemCount: _schedules.length,
-                      itemBuilder: (ctx, i) {
-                        final s = _schedules[i];
-                        return Card(
-                          color: Colors.white,
-                          margin: const EdgeInsets.only(bottom: 12),
-                          child: IntrinsicHeight(
-                            child: Row(
+                  : Expanded(
+                    child: Builder(
+                      builder: (ctx) {
+                        final Map<String, List<dynamic>> grouped = {};
+                        for (var s in _schedules) {
+                          final dt = DateTime.parse(s['start_time']).toLocal();
+                          final weekdays = ['CN', '2', '3', '4', '5', '6', '7'];
+                          final dateStr = 'Thứ ${weekdays[dt.weekday % 7]}, ${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
+                          if (!grouped.containsKey(dateStr)) grouped[dateStr] = [];
+                          grouped[dateStr]!.add(s);
+                        }
+                        
+                        // Sort schedules by start_time just in case
+                        for (var list in grouped.values) {
+                          list.sort((a, b) => DateTime.parse(a['start_time']).compareTo(DateTime.parse(b['start_time'])));
+                        }
+                        
+                        final sortedKeys = grouped.keys.toList();
+                        
+                        return ListView.builder(
+                          itemCount: sortedKeys.length,
+                          itemBuilder: (ctx, index) {
+                            final dateKey = sortedKeys[index];
+                            final items = grouped[dateKey]!;
+                            
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Container(
-                                  width: 70,
-                                  padding: const EdgeInsets.all(8),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(_formatTime(s['start_time']), style: const TextStyle(fontWeight: FontWeight.bold)),
-                                      Text(_formatTime(s['end_time']), style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                                    ],
-                                  ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 10),
+                                  child: Text(dateKey, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blueAccent)),
                                 ),
-                                Container(width: 4, color: s['type'] == 'LECTURE' ? Colors.blue : (s['type'] == 'EVENT' ? Colors.orange : Colors.green)),
-                                Expanded(
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(12),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(s['course_code'], style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold)),
-                                        Text(s['title'] ?? s['course_name'] ?? 'Không tên', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                                        const SizedBox(height: 4),
-                                        Text('📍 ${s['room']}', style: const TextStyle(color: Colors.grey)),
-                                      ],
+                                ...items.map((s) {
+                                  return Card(
+                                    color: Colors.white,
+                                    margin: const EdgeInsets.only(bottom: 12),
+                                    child: IntrinsicHeight(
+                                      child: Row(
+                                        children: [
+                                          Container(
+                                            width: 70,
+                                            padding: const EdgeInsets.all(8),
+                                            child: Column(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                Text(_formatTime(s['start_time']), style: const TextStyle(fontWeight: FontWeight.bold)),
+                                                Text(_formatTime(s['end_time']), style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                                              ],
+                                            ),
+                                          ),
+                                          Container(width: 4, color: s['type'] == 'LECTURE' ? Colors.blue : (s['type'] == 'EVENT' ? Colors.orange : Colors.green)),
+                                          Expanded(
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(12),
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(s['course_code'], style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold)),
+                                                  Text(s['title'] ?? s['course_name'] ?? 'Không tên', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                                                  const SizedBox(height: 4),
+                                                  Text('📍 ${s['room'] ?? 'Đang cập nhật'}', style: const TextStyle(color: Colors.grey)),
+                                                ],
+                                              ),
+                                            ),
+                                          )
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                )
+                                  );
+                                }),
                               ],
-                            ),
-                          ),
+                            );
+                          },
                         );
-                      },
-                    ),
+                      }
+                    )
                   )
         ],
       ),
