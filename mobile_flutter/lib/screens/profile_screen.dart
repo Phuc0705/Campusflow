@@ -70,7 +70,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   data: {
                     'full_name': nameController.text.trim(),
                     'major': majorController.text.trim(),
-                    'academic_year': yearController.text.trim(),
+                    'cohort': yearController.text.trim(),
                   },
                 ),
               );
@@ -98,7 +98,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final String email = user?.email ?? 'Chưa cập nhật email';
     final String avatarUrl = user?.userMetadata?['avatar_url'] ?? '';
     final String major = user?.userMetadata?['major'] ?? 'Đang cập nhật...';
-    final String academicYear = user?.userMetadata?['academic_year'] ?? 'Đang cập nhật...';
+    final String academicYear = user?.userMetadata?['cohort'] ?? 'Đang cập nhật...';
 
     return Scaffold(
       backgroundColor: Colors.grey[100],

@@ -79,7 +79,7 @@ router.post('/mock-sso', async (req, res) => {
         data: {
           full_name: studentData.name,
           major: studentData.major,
-          academic_year: studentData.year
+          cohort: studentData.year
         }
       });
       if (signUpError) throw signUpError;
@@ -93,7 +93,7 @@ router.post('/mock-sso', async (req, res) => {
       data: {
         full_name: studentData.name,
         major: studentData.major,
-        academic_year: studentData.year
+        cohort: studentData.year
       }
     });
 
