@@ -1,0 +1,42 @@
+name: CampusFlow CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main", "baoanh" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-backend:
+    name: Build & Check Backend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+    - name: Install dependencies
+      run: npm install
+
+  build-admin-web:
+    name: Build Admin Dashboard
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./admin-web
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+    - name: Install dependencies
+      run: npm install
+    - name: Build Web
+      run: npm run build
